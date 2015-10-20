@@ -101,7 +101,7 @@ static void NJU3714_write(uint16_t value)
 		exit(EXIT_FAILURE); \
 	}
 
-static void adxl345_read(int fd, uint8_t addr, uint8_t *buf, uint16_t len)
+static void adxl345_read(int fd, uint8_t addr, void *buf, uint16_t len)
 {
 	struct iic_msg msg[2];
 	struct iic_rdwr_data rdwr;
@@ -149,14 +149,21 @@ static void adxl345_write(int fd, uint8_t addr, uint8_t value)
 #define ADXL345_POWER_CTL   0x2D
 #define ADXL345_DATA_X0     0x32
 
+typedef struct {
+	short x;
+	short y;
+	short z;
+} ADXL345_ACCELERATION;
+
 int main(argc, argv)
 	int argc;
 	char *argv[];
 {
 	int fd;
-	uint8_t devid, buf[6];
+	uint8_t devid;
 	struct timespec base, now;
-	short x, y, z;
+	ADXL345_ACCELERATION acc;
+	short x;
 
 	if ((fd = open("/dev/iic1", O_RDWR)) < 0)
 		die("open");
@@ -175,15 +182,11 @@ int main(argc, argv)
 
 	(void)clock_gettime(CLOCK_MONOTONIC, &base);
 	for (;;) {
-		adxl345_read(fd, ADXL345_DATA_X0, buf, sizeof(buf));
-		x = *(short *)&buf[0];
-		y = *(short *)&buf[2];
-		z = *(short *)&buf[4];
-
+		adxl345_read(fd, ADXL345_DATA_X0, &acc, sizeof(acc));
 #if 0
-		(void)printf("(%6d,%6d,%6d)\n", x, y, z);
+		(void)printf("(%6d,%6d,%6d)\n", acc.x, acc.y, acc.z);
 #else
-		x = (192 - x) / 48;
+		x = (192 - acc.x) / 48;
 		if (x < 0)
 			x = 0;
 		if (7 < x)
