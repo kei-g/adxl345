@@ -20,12 +20,15 @@ static void gpio_signal(int sig);
 
 #define GPIO_HI             7
 #define GPIO_LO             10
+
 #define NJU3714_CLR(v)      GPIO[(v)] = 1 << 22
 #define NJU3714_STB(v)      GPIO[(v)] = 1 << 27
 #define NJU3714_CLK(v)      GPIO[(v)] = 1 << 17
 #define NJU3714_DAT(v)      GPIO[(v)] = 1 <<  4
+#define NJU3714_ALL(v)      GPIO[(v)] = 1 << 4 | 1 << 17 | 1 << 27 | 1 << 22
 
 static volatile uint32_t *GPIO = NULL;
+
 static void gpio_init(void)
 {
 	int fd;
@@ -34,8 +37,14 @@ static void gpio_init(void)
 	if ((fd = open("/dev/mem", O_RDWR | O_SYNC)) < 0)
 		die("open");
 
-	addr = mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_SHARED,
-		fd, 0x20200000);
+	addr = mmap(
+			NULL,
+			4096,
+			PROT_READ | PROT_WRITE,
+			MAP_SHARED,
+			fd,
+			0x20200000
+		);
 	if ((int)addr == -1)
 		die("mmap");
 
@@ -43,7 +52,7 @@ static void gpio_init(void)
 		die("close");
 
 	GPIO = (volatile uint32_t *)addr;
-	GPIO[10] = 1 << 4 | 1 << 17 | 1 << 27 | 1 << 22;
+	NJU3714_ALL(GPIO_LO);
 
 	atexit(gpio_exit);
 	signal(SIGINT, gpio_signal);
