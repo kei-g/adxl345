@@ -15,8 +15,10 @@
 		exit(EXIT_FAILURE); \
 	}
 
+static void gpio_init(void);
 static void gpio_exit(void);
 static void gpio_signal(int sig);
+static void NJU3714_write(uint16_t value);
 
 #define GPIO_HI             7
 #define GPIO_LO             10
@@ -60,19 +62,12 @@ static void gpio_init(void)
 
 static void gpio_exit(void)
 {
-	int i;
 	void *addr;
 
 	if (!GPIO)
 		return;
 
-	NJU3714_STB(GPIO_HI);
-	for (i = 0; i < 12; i++) {
-		NJU3714_DAT(GPIO_LO);
-		NJU3714_CLK(GPIO_HI);
-		NJU3714_CLK(GPIO_LO);
-	}
-	NJU3714_STB(GPIO_LO);
+	NJU3714_write(0);
 	NJU3714_CLR(GPIO_LO);
 
 	addr = (void *)GPIO;
@@ -86,6 +81,18 @@ static void gpio_signal(int sig)
 {
 	(void)printf("\n");
 	exit(0);
+}
+
+static void NJU3714_write(uint16_t value)
+{
+	int i;
+	NJU3714_STB(GPIO_HI);
+	for (i = 0; i < 12; i++) {
+		NJU3714_DAT(value & (1 << i) ? GPIO_HI : GPIO_LO);
+		NJU3714_CLK(GPIO_HI);
+		NJU3714_CLK(GPIO_LO);
+	}
+	NJU3714_STB(GPIO_LO);
 }
 
 #define die4(func, cmd, name, addr) { \
@@ -146,7 +153,7 @@ int main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int fd, i;
+	int fd;
 	uint8_t devid, buf[6];
 	struct timespec base, now;
 	short x, y, z;
@@ -181,13 +188,7 @@ int main(argc, argv)
 			x = 0;
 		if (7 < x)
 			x = 7;
-		NJU3714_STB(GPIO_HI);
-		for (i = 0; i < 12; i++) {
-			NJU3714_DAT(i == x ? GPIO_HI : GPIO_LO);
-			NJU3714_CLK(GPIO_HI);
-			NJU3714_CLK(GPIO_LO);
-		}
-		NJU3714_STB(GPIO_LO);
+		NJU3714_write(1 << x);
 #endif
 
 		base.tv_nsec += 10 * 1000 * 1000; // 10msec <= 100Hz
