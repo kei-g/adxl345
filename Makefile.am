@@ -1,0 +1,2 @@
+bin_PROGRAMS=adxl345
+adxl345_SOURCES=adxl345.c
