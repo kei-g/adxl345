@@ -24,7 +24,9 @@
 #include <unistd.h>
 #endif
 
+#if HAVE_DEV_IICBUS_IIC_H
 #include <dev/iicbus/iic.h>
+#endif
 
 #define die(s) { \
 		perror(s); \
