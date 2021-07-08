@@ -3,30 +3,17 @@
 #endif
 
 #include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <time.h>
-
-#if HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif
-
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
-#if HAVE_DEV_IICBUS_IIC_H
 #include <dev/iicbus/iic.h>
-#endif
 
 #define die(s) { \
 		perror(s); \
