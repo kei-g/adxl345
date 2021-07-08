@@ -1,0 +1,7 @@
+language: c
+notifications:
+  email: false
+os:
+  - freebsd
+script:
+  - ./configure CC=clang CFLAGS="-Ofast -Wall -Werror -march=native" LD=clang LDFLAGS="-Wl,-s" && make
